@@ -1,18 +1,171 @@
-# This .gitignore is appropriate for repositories deployed to GitHub Pages and using
-# a Gemfile as specified at https://github.com/github/pages-gem#conventional
+import java.io.*;
+import java.util.*;
 
-# Basic Jekyll gitignores (synchronize to Jekyll.gitignore)
-_site/
-.sass-cache/
-.jekyll-cache/
-.jekyll-metadata
+public class Main {
+    private static final String FILE_PATH = "mahasiswa.csv";
 
-# Additional Ruby/bundler ignore for when you run: bundle install
-/vendor
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        String choice;
 
-# Specific ignore for GitHub Pages
-# GitHub Pages will always use its own deployed version of pages-gem 
-# This means GitHub Pages will NOT use your Gemfile.lock and therefore it is
-# counterproductive to check this file into the repository.
-# Details at https://github.com/github/pages-gem/issues/768
-Gemfile.lock
+        do {
+            System.out.println("=============");
+            System.out.println("| Pilih menu:");
+            System.out.println("| [C] : Create");
+            System.out.println("| [R] : Read");
+            System.out.println("| [U] : Update");
+            System.out.println("| [D] : Delete");
+            System.out.println("| [X] : Exit");
+            System.out.println("=============");
+            choice = scanner.nextLine().toUpperCase();
+
+            switch (choice) {
+                case "C":
+                    create(scanner);
+                    break;
+                case "R":
+                    read();
+                    break;
+                case "U":
+                    update(scanner);
+                    break;
+                case "D":
+                    delete(scanner);
+                    break;
+                case "X":
+                    System.out.println("Exiting...");
+                    break;
+                default:
+                    System.out.println("Pilihan tidak valid. Silakan coba lagi.");
+            }
+        } while (!choice.equals("X"));
+
+        scanner.close();
+    }
+
+    private static void create(Scanner scanner) {
+        System.out.print("Masukkan NIM: ");
+        String nim = scanner.nextLine();
+        System.out.print("Masukkan Nama: ");
+        String nama = scanner.nextLine();
+        System.out.print("Masukkan Alamat: ");
+        String alamat = scanner.nextLine();
+        System.out.print("Masukkan Semester: ");
+        String semester = scanner.nextLine();
+        System.out.print("Masukkan SKS: ");
+        String sks = scanner.nextLine();
+        System.out.print("Masukkan IPK: ");
+        String ipk = scanner.nextLine();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
+            writer.write(nim + ", " + nama + ", " + alamat + ", " + semester + ", " + sks + ", " + ipk);
+            writer.newLine();
+            System.out.println("Data berhasil ditambahkan.");
+        } catch (IOException e) {
+            System.out.println("Terjadi kesalahan saat menulis ke file: " + e.getMessage());
+        }
+    }
+
+    private static void read() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+            String line;
+            System.out.println("=====================================================================================");
+            System.out.printf("%-15s %-15s %-15s %-15s %-15s %-15s%n", "NIM", "Nama", "Alamat", "Semester", "SKS", "IPK");
+            System.out.println("=====================================================================================");
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                System.out.printf("%-15s %-15s %-15s %-15s %-15s %-15s%n",
+                        data[0].trim(),
+                        data[1].trim(),
+                        data[2].trim(),
+                        data[3].trim(),
+                        data[4].trim(),
+                        data[5].trim());
+            }
+            System.out.println("=====================================================================================");
+        } catch (IOException e) {
+            System.out.println("Terjadi kesalahan saat membaca file: " + e.getMessage());
+        }
+    }
+
+    private static void update(Scanner scanner) {
+        System.out.print("Masukkan NIM yang ingin diupdate: ");
+        String nimToUpdate = scanner.nextLine();
+        List<String> lines = new ArrayList<>();
+        boolean found = false;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                if (data[0].equals(nimToUpdate)) {
+                    found = true;
+                    System.out.print("Masukkan Nama baru: ");
+                    String nama = scanner.nextLine();
+                    System.out.print("Masukkan Alamat baru: ");
+                    String alamat = scanner.nextLine();
+                    System.out.print("Masukkan Semester baru: ");
+                    String semester = scanner.nextLine();
+                    System.out.print("Masukkan SKS baru: ");
+                    String sks = scanner.nextLine();
+                    System.out.print("Masukkan IPK baru: ");
+                    String ipk = scanner.nextLine();
+                    lines.add(nimToUpdate + "," + nama + "," + alamat + "," + semester + "," + sks + "," + ipk);
+                } else {
+                    lines.add(line);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Terjadi kesalahan saat membaca file: " + e.getMessage());
+        }
+
+        if (found) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+                for (String updatedLine : lines) {
+                    writer.write(updatedLine);
+                    writer.newLine();
+                }
+                System.out.println("Data berhasil diupdate.");
+            } catch (IOException e) {
+                System.out.println("Terjadi kesalahan saat menulis ke file: " + e.getMessage());
+            }
+        } else {
+            System.out.println("NIM tidak ditemukan.");
+        }
+    }
+
+    private static void delete(Scanner scanner) {
+        System.out.print("Masukkan NIM yang ingin dihapus: ");
+        String nimToDelete = scanner.nextLine();
+        List<String> lines = new ArrayList<>();
+        boolean found = false;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                if (!data[0].equals(nimToDelete)) {
+                    lines.add(line);
+                } else {
+                    found = true;
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Terjadi kesalahan saat membaca file: " + e.getMessage());
+        }
+
+        if (found) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+                for (String remainingLine : lines) {
+                    writer.write(remainingLine);
+                    writer.newLine();
+                }
+                System.out.println("Data berhasil dihapus.");
+            } catch (IOException e) {
+                System.out.println("Terjadi kesalahan saat menulis ke file: " + e.getMessage());
+            }
+        } else {
+            System.out.println("NIM tidak ditemukan.");
+        }
+    }
+}
